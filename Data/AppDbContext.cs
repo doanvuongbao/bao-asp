@@ -29,5 +29,5 @@ namespace bao_asp.Data
                 .Property(o => o.TotalPrice)
                 .HasColumnType("decimal(18,2)");
         }
-    }
+	}
 }
