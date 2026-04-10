@@ -1,11 +1,19 @@
 ﻿using bao_asp.Models;
+using bao_asp.Data;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/cart")]
 public class CartController : ControllerBase
 {
+    private readonly AppDbContext _context;
+
     private static List<OrderItem> cart = new List<OrderItem>();
+
+    public CartController(AppDbContext context)
+    {
+        _context = context;
+    }
 
     // GET: api/cart
     [HttpGet]
@@ -32,11 +40,21 @@ public class CartController : ControllerBase
     [HttpPost]
     public IActionResult AddToCart([FromBody] OrderItem item)
     {
+        var book = _context.Books.FirstOrDefault(x => x.Id == item.BookId);
+
+        if (book == null)
+        {
+            return NotFound("Không tìm thấy sách");
+        }
+
+        item.UnitPrice = book.Price;
+
         var existingItem = cart.FirstOrDefault(x => x.BookId == item.BookId);
 
         if (existingItem != null)
         {
             existingItem.Quantity += item.Quantity;
+            existingItem.UnitPrice = book.Price;
         }
         else
         {

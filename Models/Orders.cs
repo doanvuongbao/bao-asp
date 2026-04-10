@@ -8,11 +8,7 @@ public class Order
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalPrice { get; set; }
 
-    public string Status { get; set; } = "Pending"; // Gán giá trị mặc định là 'Chờ xử lý'  
+    public string Status { get; set; } = "Pending";
 
-    // Thêm dấu ? để không bắt buộc phải gửi nguyên object User lên từ Swagger
-    public virtual User? User { get; set; }
-
-    // Thêm dấu ? và khởi tạo danh sách rỗng để tránh lỗi NullReference
     public virtual List<OrderItem>? OrderItems { get; set; } = new List<OrderItem>();
 }

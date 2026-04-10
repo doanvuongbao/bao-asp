@@ -1,4 +1,5 @@
-﻿public class OrderItem
+﻿using System.Text.Json.Serialization;
+public class OrderItem
 {
     public int OrderId { get; set; }
     public int BookId { get; set; }
@@ -9,6 +10,8 @@
 
     // QUAN TRỌNG: Thêm dấu ? để báo cho Swagger rằng 
     // không cần gửi kèm nguyên cả đối tượng Order/Book lên.
+    [JsonIgnore]
     public virtual Order? Order { get; set; }
+    [JsonIgnore]
     public virtual Book? Book { get; set; }
 }

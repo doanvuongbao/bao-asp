@@ -73,12 +73,26 @@ public class BooksController : ControllerBase
 
     // POST: api/books
     [HttpPost]
-    public async Task<ActionResult<Book>> PostBook([FromBody] Book book)
+    public async Task<ActionResult<Order>> PostOrder([FromBody] Order order)
     {
-        _context.Books.Add(book);
+        foreach (var item in order.OrderItems)
+        {
+            var book = await _context.Books.FindAsync(item.BookId);
+
+            if (book == null)
+            {
+                return BadRequest($"Không tìm thấy sách có Id = {item.BookId}");
+            }
+
+            item.UnitPrice = book.Price;
+        }
+
+        order.TotalPrice = order.OrderItems.Sum(x => x.Quantity * x.UnitPrice);
+
+        _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+        return Ok(order);
     }
 
     // PUT: api/books/{id}

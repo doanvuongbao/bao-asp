@@ -49,14 +49,29 @@ public class OrdersController : ControllerBase
             .ToListAsync();
     }
 
+    
     // POST: api/orders
     [HttpPost]
-    public async Task<ActionResult<Order>> CreateOrder([FromBody] Order order)
+    public async Task<ActionResult<Order>> PostOrder([FromBody] Order order)
     {
+        foreach (var item in order.OrderItems)
+        {
+            var book = await _context.Books.FindAsync(item.BookId);
+
+            if (book == null)
+            {
+                return BadRequest($"Không tìm thấy sách có Id = {item.BookId}");
+            }
+
+            item.UnitPrice = book.Price;
+        }
+
+        order.TotalPrice = order.OrderItems.Sum(x => x.Quantity * x.UnitPrice);
+
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+        return Ok(order);
     }
 
     // PUT: api/orders/{id}

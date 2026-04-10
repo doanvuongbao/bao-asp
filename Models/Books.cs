@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 public class Book
 {
@@ -11,5 +12,6 @@ public class Book
     public int CategoryId { get; set; }
 
     // Thêm dấu ? và khởi tạo List trống mặc định
+    [JsonIgnore]
     public List<OrderItem>? OrderItems { get; set; } = new List<OrderItem>();
 }
