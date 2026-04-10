@@ -72,28 +72,28 @@ public class BooksController : ControllerBase
     }
 
     // POST: api/books
+    // POST: api/books
     [HttpPost]
-    public async Task<ActionResult<Order>> PostOrder([FromBody] Order order)
+    public async Task<ActionResult<Book>> PostBook([FromBody] Book book)
     {
-        foreach (var item in order.OrderItems)
+        // Kiểm tra xem CategoryId có tồn tại trong database không (nếu cần)
+        var categoryExists = await _context.Categories.AnyAsync(c => c.Id == book.CategoryId);
+        if (!categoryExists)
         {
-            var book = await _context.Books.FindAsync(item.BookId);
-
-            if (book == null)
-            {
-                return BadRequest($"Không tìm thấy sách có Id = {item.BookId}");
-            }
-
-            item.UnitPrice = book.Price;
+            return BadRequest($"CategoryId = {book.CategoryId} không tồn tại.");
         }
 
-        order.TotalPrice = order.OrderItems.Sum(x => x.Quantity * x.UnitPrice);
+        // Thêm sách mới vào DbContext
+        _context.Books.Add(book);
 
-        _context.Orders.Add(order);
+        // Lưu thay đổi vào Database
         await _context.SaveChangesAsync();
 
-        return Ok(order);
+        // Trả về kết quả (thông thường trả về 201 Created và kèm thông tin sách vừa tạo)
+        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
     }
+
+ 
 
     // PUT: api/books/{id}
     [HttpPut("{id}")]
