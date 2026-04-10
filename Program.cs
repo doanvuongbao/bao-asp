@@ -19,15 +19,21 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // 4. Cấu hình HTTP request pipeline
+
+// Đưa Swagger ra ngoài if để luôn hiển thị trên Render
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    options.RoutePrefix = string.Empty; // Truy cập link gốc là ra ngay Swagger
+});
+
+// Bạn có thể giữ lại đoạn này nếu muốn check môi trường khác
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Các cấu hình chỉ dành cho máy cá nhân (nếu có)
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
+;
 
 // 5. Map các Controller
 app.MapControllers();
