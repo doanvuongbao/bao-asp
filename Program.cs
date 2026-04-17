@@ -26,7 +26,7 @@ app.UseSwaggerUI(c =>
 {
     // FIX lỗi 404: Sử dụng đường dẫn chuẩn của Swagger UI
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    c.RoutePrefix = string.Empty; // Vào link gốc là hiện Swagger luôn
+    //c.RoutePrefix = string.Empty; // Vào link gốc là hiện Swagger luôn
 });
 
 // Tạm thời comment cái này lại nếu bạn chưa dùng HTTPS trên Render để tránh lỗi vòng lặp chuyển hướng

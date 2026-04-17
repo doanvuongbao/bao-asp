@@ -72,7 +72,6 @@ public class BooksController : ControllerBase
     }
 
     // POST: api/books
-    // POST: api/books
     [HttpPost]
     public async Task<ActionResult<Book>> PostBook([FromBody] Book book)
     {
