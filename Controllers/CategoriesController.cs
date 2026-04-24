@@ -30,6 +30,40 @@ namespace bao_asp.Controllers
 
             return Ok(category);
         }
+
+        // --- PHẦN THÊM MỚI: Cập nhật loại sách ---
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCategory(int id, [FromBody] Categories category)
+        {
+            // Kiểm tra ID trên URL và ID trong dữ liệu gửi lên có khớp nhau không
+            if (id != category.Id)
+            {
+                return BadRequest("ID không khớp"); // Trả về lỗi 400 nếu không khớp
+            }
+
+            // Đánh dấu thực thể đã bị thay đổi để EF Core cập nhật
+            _context.Entry(category).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Xử lý lỗi nếu bản ghi đã bị xóa trong lúc đang cập nhật
+                if (!CategoryExists(id))
+                {
+                    return NotFound("Không tìm thấy loại sách để cập nhật");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(category); // Trả về dữ liệu đã cập nhật thành công
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
@@ -44,6 +78,12 @@ namespace bao_asp.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // Hàm hỗ trợ kiểm tra sự tồn tại của Category
+        private bool CategoryExists(int id)
+        {
+            return _context.Categories.Any(e => e.Id == id);
         }
     }
 }

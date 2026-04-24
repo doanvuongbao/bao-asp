@@ -92,49 +92,41 @@ public class BooksController : ControllerBase
         return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
     }
 
- 
 
-    // PUT: api/books/{id}
+
+    // Sửa lại PUT: api/books/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> PutBook(int id, [FromBody] Book book)
     {
-        if (id != book.Id)
-        {
-            return BadRequest();
-        }
+        if (id != book.Id) return BadRequest("ID không khớp");
 
         var existingBook = await _context.Books.FindAsync(id);
+        if (existingBook == null) return NotFound();
 
-        if (existingBook == null)
-        {
-            return NotFound();
-        }
-
+        // Cập nhật thông tin
         existingBook.Title = book.Title;
         existingBook.Author = book.Author;
         existingBook.Price = book.Price;
         existingBook.Stock = book.Stock;
         existingBook.CategoryId = book.CategoryId;
+        // Nếu bạn có trường ảnh: existingBook.ImageUrl = book.ImageUrl;
 
         await _context.SaveChangesAsync();
 
-        return NoContent();
+        // Trả về đối tượng đã sửa để React cập nhật mảng local
+        return Ok(existingBook);
     }
 
-    // DELETE: api/books/{id}
+    // Sửa lại DELETE: api/books/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBook(int id)
     {
         var book = await _context.Books.FindAsync(id);
-
-        if (book == null)
-        {
-            return NotFound();
-        }
+        if (book == null) return NotFound();
 
         _context.Books.Remove(book);
         await _context.SaveChangesAsync();
 
-        return NoContent();
+        return Ok(new { message = "Xóa sách thành công" });
     }
 }
