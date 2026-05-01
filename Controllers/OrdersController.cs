@@ -39,48 +39,85 @@ namespace bao_asp.Controllers
 
         // 3. HÀM CHECKOUT (Sửa lỗi gán sai biến Orders -> OrderDate)
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout([FromBody] List<OrderItemRequest> cartItems, [FromQuery] int userId = 1)
+        public async Task<IActionResult> Checkout(
+    [FromBody] List<OrderItemRequest> cartItems,
+    [FromQuery] int userId = 1)
         {
-            if (cartItems == null || !cartItems.Any())
-                return BadRequest("Giỏ hàng trống.");
-
-            var newOrder = new Order
+            try
             {
-                UserId = userId,
-                OrderDate = DateTime.Now, // ĐÃ SỬA: Trước đó bạn ghi là 'Orders = ...' dẫn đến lỗi
-                Status = "Pending",
-                OrderItems = new List<OrderItem>()
-            };
-
-            decimal total = 0;
-
-            foreach (var item in cartItems)
-            {
-                var book = await _context.Books.FindAsync(item.BookId);
-                if (book == null) continue;
-
-                var orderDetail = new OrderItem
+                if (cartItems == null || !cartItems.Any())
                 {
-                    BookId = item.BookId,
-                    Quantity = item.Quantity,
-                    UnitPrice = book.Price
+                    return BadRequest("Giỏ hàng trống.");
+                }
+
+                var order = new Order
+                {
+                    UserId = userId,
+                    OrderDate = DateTime.Now,
+                    Status = "Pending",
+                    TotalPrice = 0,
+                    OrderItems = new List<OrderItem>()
                 };
 
-                total += orderDetail.Quantity * orderDetail.UnitPrice;
-                newOrder.OrderItems.Add(orderDetail);
+                decimal total = 0;
+
+                foreach (var item in cartItems)
+                {
+                    var book = await _context.Books.FindAsync(item.BookId);
+                    if (book == null)
+                    {
+                        return BadRequest($"Không tìm thấy sách ID = {item.BookId}");
+                    }
+
+                    if (item.Quantity <= 0)
+                    {
+                        return BadRequest($"Số lượng cho sách {book.Title} không hợp lệ.");
+                    }
+
+                    var orderItem = new OrderItem
+                    {
+                        BookId = book.Id,
+                        Quantity = item.Quantity,
+                        UnitPrice = book.Price
+                    };
+
+                    total += item.Quantity * book.Price;
+                    order.OrderItems.Add(orderItem);
+                }
+
+                order.TotalPrice = total;
+                _context.Orders.Add(order);
+
+                // --- PHẦN XÓA GIỎ HÀNG ---
+                // Sử dụng ToListAsync để tải dữ liệu lên RAM trước khi xóa (tránh lỗi truy vấn)
+                var userCartItems = await _context.Carts
+                    .Where(c => c.UserId == userId)
+                    .ToListAsync();
+
+                if (userCartItems.Any())
+                {
+                    _context.Carts.RemoveRange(userCartItems);
+                }
+
+                // Lưu cả Order mới và xóa Cart cũ trong 1 Transaction
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Thanh toán thành công",
+                    orderId = order.Id,
+                    total = order.TotalPrice,
+                    itemsDeleted = userCartItems.Count
+                });
             }
-
-            newOrder.TotalPrice = total;
-
-            _context.Orders.Add(newOrder);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
+            catch (Exception ex)
             {
-                message = "Thanh toán thành công!",
-                orderId = newOrder.Id,
-                totalAmount = newOrder.TotalPrice
-            });
+                return StatusCode(500, new
+                {
+                    message = "Lỗi server",
+                    error = ex.Message
+                });
+            }
         }
 
         // 4. CẬP NHẬT TRẠNG THÁI

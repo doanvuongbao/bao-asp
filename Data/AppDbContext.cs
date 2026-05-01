@@ -16,7 +16,7 @@ namespace bao_asp.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<Categories> Categories { get; set; }
         public DbSet<Order> Orders { get; set; }
-
+        public DbSet<Cart> Carts { get; set; } // Đảm bảo tên class Model là Cart hoặc CartItem tùy bạn đặt
         public DbSet<OrderItem> OrderItems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
